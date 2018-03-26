@@ -5,9 +5,10 @@
 //函数对象属性之arguments 实参集合（类似数组的一个对象）
 var foo = function (a,b){
     console.log(arguments);//类似数组的一个对象
+    //arguments 是Symbol类型，独一无二的，具体参见后续ES6部分
+    console.log(arguments === test.arguments);
 
-    console.log(foo.arguments.length);
-    // console.log(arguments.length);
+    console.log(arguments.length);
     var args = Array.prototype.splice.call(arguments,0);
     console.log(args);
 };
@@ -50,14 +51,12 @@ function testOuter() {
 testOuter();//call from the function testOuter
 
 
-//如果函数是从 JavaScript 程序的顶层调用的，则caller包含null。
-//如果在字符串上下文中使用 caller 属性，则其结果和 functionName.toString 相同，也就是说，将显示函数的反编译文本
-//函数对象属性之caller 获取调用当前函数的函数。例二
+//例二
 var obj = {
     foo1:function(){
         console.log(this.foo1.caller);
     },
-    foo2:function abc(){ //写函数名与不写函数名的区别
+    foo2:function abc(){
         this.foo1();
     }
 };
@@ -65,9 +64,10 @@ obj.foo1();
 obj.foo2();
 
 
-
-//函数对象属性之callee 返回正被执行的 Function 对象，即指定的 Function 对象的正文
-//callee 属性是 arguments 对象的一个成员，该属性仅当相关函数正在执行时才可用。通常这个属性被用来递归调用匿名函数
+//函数对象属性之callee 返回正被执行的 Function 对象，
+//即指定的 Function 对象的正文
+//callee 属性是 arguments 对象的一个成员
+//该属性仅当相关函数正在执行时才可用。通常这个属性被用来递归调用匿名函数
 var func = function(n){
     if (n <= 0)
         return 1;
@@ -84,22 +84,6 @@ console.log(func(4));
     else
         return n * arguments.callee(n - 1);
 }(4));
-
-
-//函数对象属性之 constructor 获取创建某个对象的构造函数。可以用来判断对象是哪一类
-var x = new String("Hello");
-if (x.constructor == String){
-    console.log("Object is a String.");
-}
-
-function MyObj() {
-    this.number = 1;
-}
-var y = new MyObj();
-if (y.constructor == MyObj){
-    console.log("Object constructor is MyObj.");
-}
-
 
 
 //函数对象属性之 prototype
@@ -119,6 +103,24 @@ console.log(li.sex);//M
 
 Man.prototype.isStrong = true;
 console.log(li.isStrong);//true
+
+
+//其他相关的属性
+/*
+//函数对象属性之 constructor 获取创建某个对象的构造函数。可以用来判断对象是哪一类
+var x = new String("Hello");
+if (x.constructor == String){
+    console.log("Object is a String.");
+}
+
+function MyObj() {
+    this.number = 1;
+}
+var y = new MyObj();
+if (y.constructor == MyObj){
+    console.log("Object constructor is MyObj.");
+}
+*/
 
 
 
@@ -147,7 +149,7 @@ swim.call(me,3,4);
 bird.fly(5,6);
 bird.fly.call(me,7,8);
 bird.fly.apply(me,[7,8]);
-//swim(1,2);与swim.call(null,1,2);相同同
+swim.call(null,1,2);
 
 
 //函数对象方法之 apply
@@ -155,12 +157,31 @@ bird.fly.apply(me,[7,8]);
 //与call方法不同的地方是，apply的第二个参数类型必须是Array
 swim.apply(me,[9,10]);
 bird.fly.apply(me,[11,12]);
-swim.apply(null,[13,14]);//同swim(13,14)
+swim.apply(null,[13,14]);
 
 
 
+//关于绑定 例一
+//下述代码输出结果为（     ）
+var x = 45;
+var obj = {
+    x:23,
+    test:function(){
+		function foo(){
+			console.log(this.x);
+		}
+		foo.bind(this)();//var fee = foo.bind(this); fee();
+		foo();
+    }
+};
+obj.test();
+//A.23  45
+//B.23  23
+//C.45  45
+//D.45  23
 
-//函数对象方法之 bind 硬绑定 例一
+
+//函数对象方法之 bind 硬绑定 例二
 // function.bind(thisArg[,arg1[,arg2[,argN]]])
 // 在绑定功能中，this对象解析为传入的对象。
 // 返回一个与 function 函数相同的新函数，只不过函数中的this对象和参数不同。
@@ -183,7 +204,7 @@ var result = boundCheckNumericRange (12);//相当于range.boundCheckNumericRange
 console.log(result);//true
 
 
-//bind 参数的问题 例二
+//bind 参数的问题 例三
 // 该绑定函数将 bind 方法中指定的参数用作第一个参数和第二个参数。
 // 在调用该绑定函数时，指定的任何参数将用作第三个、第四个参数（依此类推）
 // Define the original function with four parameters.
