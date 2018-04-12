@@ -1,0 +1,71 @@
+//两种立即执行的不同方式
+(function (x,y){
+return x>y?y:x;}(2,3));//2
+(function (x,y){
+return x>y?y:x;})(2,3);//2
+//立即执行表达式和逻辑运算符结合
+var i=function(){return 10;}//为i赋值一个表达式
+var i=function(){return 10;}()//i为10
+true && function(a,b){
+    return a>b?a:b;
+}(5,9)            // 9  先进行短路原则判断，再执行立即执行函数
+!function(x,y){
+    return x==y?true:false; 
+}("5",5);         //false 先进行立即执行表达式，再进行逻辑运算
+!function(){return 0; }( );//true  先执行立即执行表达式，返回0
+!function(){return 2; }( );//false  先执行立即执行表达式，返回2 
+/*IIFE是表达式，要注意使用分号结尾，否则可能出现错误*/
+(function (){
+	console.log("111");}());//当有多个表达式相连接时，一定要加；
+(function (){
+	console.log("222");}());
+/*JS中没有块作用域，容易造成js文件内或文件间的同名变量互相污染
+   通过IIFE引入一个新的作用域来限制变量的作用域，来避免变量污染*/
+/*用立即执行表达式解决变量污染问题*/
+//第一个文件
+var x = 10;
+    document.onclick = function () {
+        // console.log("x = ",x);
+        alert("x = "+x);
+    };
+//第二个文件
+var x=20;
+//先会执行x=10 然后执行function，因为function是点击之后才执行（异步）  再执行x=20 ，此时x=10被覆盖，单击鼠标输出x=10
+//解决方案
+//第一个文件
+(function () {  
+    var x = 10;
+    document.onclick = function () {
+        // console.log("x = ",x);
+        alert("x = "+x);
+    };
+})();
+//第二个文件
+var x = 20;
+
+function f(){
+    var getNumFuncs = [];//函数数组
+    var i=0;
+    for(;i<10;i++){
+        getNumFuncs[i] = function(){
+            return i;                      //每个数组里面都是一个函数对象
+        };
+    }
+    return getNumFuncs;
+}
+var tmp = f();
+tmp[3]();  //无论tmp[]里面的数是0、1、2、3,4,5,6，7，8，9,结果都是10 var i=0;只创建了一个变量空间，每执行一个i++
+//变量会覆盖，造成变量污染
+
+function f(){
+    var getNumFuncs = [];//函数数组
+    for(var i=0;i<10;i++){
+        (function (j) {    //10个独立的j
+            getNumFuncs[j] = function(){return j;}; //建立了10个函数作用域，每个作用域内的变量都是独立的，变量之间不共享
+        })(i);
+    }
+    return getNumFuncs;
+}
+var tmp = f();
+tmp[3]();//3
+
