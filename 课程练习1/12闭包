@@ -1,0 +1,129 @@
+function f1(){
+    var x=1;
+    function f2(){
+        return x++;  
+    }
+	return f2(); //返回x的值
+}
+var f3=f1();  //f3引用的不是函数对象，每调用一次，函数就释放一次
+console.log(f3);//1
+console.log(f3);//1
+
+function f1(){
+    var x=1;
+    function f2(){
+        return x++;  //x没有释放掉，始终常驻内存
+    }
+	return f2;  //函数对象 f2(){}
+}
+var f3=f1();  //f3引用函数对象，只要f3不释放函数对象f2和变量x均不会被释放
+console.log(f3()); //1
+console.log(f3()); //2
+/*闭包是词法作用域中的函数和其相关变量的包裹体*/
+function createInc(startValue){
+	return function(step){
+		startValue+=step;
+		return startValue;
+	}
+}
+var inc = createInc(5);//inc返回的是函数对象 startValue和function形成闭包
+console.log(inc(1));//6 startValue常驻内存 将step=1传入function中
+console.log(inc(2));//8
+var inc2 = createInc(5);//新创建了一个闭包，startValue重新创建
+console.log(inc(1)); //9
+console.log(inc2(1));//6 新创建的一个闭包
+inc = createInc(5); //新创建的一个闭包
+console.log(inc(1));//6
+
+function foo() {
+    var i = 0;
+    function bar() {
+        console.log(++i);
+    }
+    return bar();
+}
+foo();//1   两个不同的闭包
+foo();//1
+
+function foo() {
+    var i = 0;
+    function bar() {
+        console.log(++i);
+    }
+    return bar;
+}
+var a = foo();//a引用的是函数对象，函数bar和其相关词法上下文中的变量i，构成了一个闭包
+var b = foo();  //a和b不是相同的闭包
+a();//1
+a();//2
+b();//1
+
+var tmp = 100;//注意：词法作用域,形成的闭包是否包含此行的变量tmp？
+function foo(x) {
+    var tmp = 3;//注意：词法作用域，思考：若屏蔽此行，会输出什么？foo之外的tmp是否为闭包的一部分？
+    return function (y) {
+        console.log(x + y + (++tmp));
+    }
+}
+var fee = foo(2); //引用的是函数对象 fee 形成了一个闭包 包括函数变量y 变量tmp（不包括全局的tmp）
+fee(10);//16 为函数对象传值，y传值为10
+fee(10);//17
+fee(10);//18
+
+var tmp = 100;//包含此行的变量tmp
+function foo(x) {
+    return function (y) {
+        console.log(x + y + (++tmp));
+    }
+}
+var fee = foo(2); //引用的是函数对象 fee 形成了一个闭包 包括函数变量y 全局的tmp
+fee(10);//113 为函数对象传值，y传值为10
+fee(10);//114
+fee(10);//115
+
+var z = 100;//注意：词法作用域,形成的闭包是否包含此行的变量tmp？
+function foo(x) {
+    var tmp = 3;//注意：词法作用域，思考：若屏蔽此行，会输出什么？foo之外的tmp是否为闭包的一部分？
+    return function (y) {
+        console.log(x + y + (++tmp)+z);
+    }
+}
+var fee = foo(2); // fee 形成了一个闭包 包括函数变量y 变量tmp（不包括全局的tmp）
+fee(10);//116
+fee(10);//117
+fee(10);//118
+/*闭包的常见形式（以函数对象形式返回）*/
+function counter() {
+    var n = 0;
+    return {
+        count:function () {return ++n;},
+        reset:function () {n = 0;return n;}
+    }
+}
+var c = counter(); //c和d是两个不同的闭包
+var d = counter();
+console.log(c.count());//1 以函数对象形式返回
+console.log(d.count());//1
+console.log(c.reset());//0
+console.log(c.count());//1
+console.log(d.count());//2
+/*使函数中的变量被保存在内存中不被释放（单例模式）*/
+function f1(){
+    var n = 999;
+    function f2(){
+        console.log(++n);
+    }
+    return f2;  //局部变量n一直保存在内存中，f2始终在内存中，而f2的存在依赖于f1，因此f1也始终在内存中
+}
+var f = f1();
+f();//1000
+f();//1001
+
+function fn() {
+    var a;
+    return function() {
+        return a || (a = document.body.appendChild(document.createElement('div')));
+    }  //如果有a的话，输出a，如果没有a的话，创建一个div
+};
+var f = fn();    
+f();
