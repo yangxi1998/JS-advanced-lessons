@@ -1,0 +1,112 @@
+//JS里面key值一定是字符串类型
+var me={
+	age:100,  //,
+	name:'know',
+	show:function(){
+		console.log('我是'+this.name+'今年'+this.age+'岁了');//this.age相当于me.age
+	}
+}
+me.show();
+//自定义对象
+Person=function(name){
+	this.name=name;
+}
+var p=new Person('know');
+console.log(typeof Object); //function
+console.log(typeof Array);  //function
+console.log(typeof Function); //function
+console.log(typeof Date);    //function
+console.log(typeof Number);   //function
+console.log(typeof String);    //function
+console.log(typeof Boolean);   //function
+console.log(typeof Math);//object
+console.log(typeofo JSON); //object
+String instanceof Object  //true
+//如果检测一个数据类型是否为对象类型，用instanceof 。typeof用来检测基本数据类型
+console.log(Function instanceof Function);//true
+console.log(Function instanceof Object);//true
+console.lg(new Function() instanceof Function); //true  new Function()实例化出函数
+console.lg(new(new Function()) instanceof Function);//false  new(new Function())是对象
+console.lg(new(new Function()) instanceof Object);//true
+console.log(Array instanceof Function);//t
+console.log(Array instanceof Object);//t
+console.log(Date instanceof Function);//t
+console.log(Date instanceof Object);//t
+console.log(Math instanceof Function);//f
+console.log(Math instanceof Object);//t
+console.log(JSON instanceof Function);//f
+console.log(JSON instanceof Object);//t
+var o = {
+    _x:1.0,//x前加_表明内部属性，不成文规定
+    get x(){
+        return this._x;  //get优先级高于数据属性   get x(){return this.x;} 会一直调用get属性，产生递归
+    },
+    set x(val){
+        this._x = val;
+    }
+};
+console.log(o.x);//1  自动找到get访问器属性
+o.x = 2;  //自动找到set访问器属性
+console.log(o.x,o._x);//o.x访问器属性   o._x数据属性
+
+var o = {
+    _x:1.0,
+    get x(){
+        return this._x;  //get优先级高于数据属性 访问器优先级高于数据属性  
+    }
+ };
+ console.log(o.x); //1
+ o.x=2;   //为对象o添加了一个数据属性x:2;  
+ console.log(o.x);  //1   //但是o.x先访问get属性，最后还是输出1
+//过滤正常的数据
+ var p1 = {
+    _name:"Jack",
+    _age:23,
+    set age(val){
+        if(val>0&&val<150){
+            this._age = val;           //如果age在范围内，修改age的值，如果在范围之外，提示错误
+        }else{
+            console.log("请设置正常年龄");
+        }
+    },
+    get age(){
+        return this._age;
+    }
+};
+p1.age = 178; //调用set
+console.log(p1.age); //调用get
+//原型
+var arr=[1,2,3];
+arr._proto_;
+arr._proto_===Array.prototype;
+{}._proto_===Object.prototype;//false  {}在js中默认为代码块
+({})._proto_===Object.prototype;//true  ({})函数
+
+var o={
+	x:12
+}
+o._proto_===Object.prototype;//true
+var o2=Object.create(o);
+o2._proto_===o;//true
+var Person=function(name){
+	this.name=name;
+}
+var p=new Person('abc');
+p._proto_===Person.prototype;//true
+person._proto_===Function.prototype//true
+person._proto_._proto_===Object.prototype//true
+person._proto_._proto_._proto_===null;//true
+
+var obj={x1:12,x2:23,x3:34}
+for(var i=1;i<4;i++){
+    console.log(obj["x"+i]);
+}
+
+var obj3={};
+for(var i=0;i<10;i++){
+    obj3.i=i;}
+var obj4={};
+for(var i=0;i<10;i++){
+    obj4[i]=i;}
+console.log(obj3);//{i: 9} 只是添加了一个i属性，值为9覆盖了其它
+console.log(obj4);//{0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}
