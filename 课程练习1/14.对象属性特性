@@ -1,0 +1,151 @@
+//生成对象的3种方式： 字面量直接生成、 Object静态方法、 构造函数实例化对象
+var obj1={x:1};
+var obj2=o=Object.create(obj1);
+obj2.y=2;
+var obj3=function(){this.z=3;}
+var obj4=new obj3();
+
+var objProto = {
+    z:3
+};
+var obj = Object.create(objProto);
+obj.x = 1;
+obj.y = 2;
+console.log(obj.x);//1
+console.log(obj.y);//2
+console.log(obj.z);//3
+/*可枚举属性*/
+console.log(obj.toString);//原型链上有toString属性
+for(var k in obj){         //通过for...in遍历所有原型链上的可枚举属性
+    console.log(k,obj[k]);} //不能遍历到tostring属性 x 1 y 2 z 3
+/*JS对象的数据特性，属性的值（value），可写特性（writeable），可配置特性（configurable），可枚举（emumerable）*/
+var obj = {
+    x:1,
+    y:2
+};
+Object.defineProperty(obj,"x",{enumerable:false}); //defineProperty定义属性，将x设为不可枚举，在遍历的时候不可访问该属性
+for(var k in obj){            //通过for...in遍历所有原型链上的可枚举属性
+    console.log(k,obj[k]);   //y 2
+}
+
+var person = {name:"Jack"};
+Object.defineProperty(person,"name",{
+    writable:false,
+    configurable:false,
+    enumerable:true,
+    value:"Mike"
+});
+console.log(person.name);//Mike  value对应属性的值
+person.name = "Lucy";  
+console.log(person.name);//Mike  writeable为false，表示不可写
+delete person.name;
+console.log(person.name); //Mike  configurable为false表示属性不可删除 
+
+var person = {name:"Jack"};
+Object.defineProperty(person,"name",{
+    writable:false,
+    configurable:true,
+    enumerable:true,
+    value:"Mike"
+});
+console.log(person.name);//Mike
+person.name = "Lucy";  
+console.log(person.name);//Mike
+delete person.name;
+console.log(person.name); //undefined
+/*给对象添加属性*/
+//第一种
+var obj = {
+    x:1,
+    y:2
+};
+obj.z = 3;
+for(var k in obj){      //直接添加的属性，其所有特性默认都是true 
+    console.log(k,obj[k]);  //x 1 y 2 z 3
+}
+//第二种 通过defineProperty方法添加（属性特性默认为false）
+var obj = {
+    x:1,
+    y:2
+};
+obj.z = 3;////直接添加的属性，其所有特性默认都是true
+Object.defineProperty(obj,"w",{value:456,configurable:true});//通过Object.defineProperty方法添加的属性，除了手动修改的属性，其所有特性默认都是false
+//writable,enumerable没有指定，所以默认为false
+for(var k in obj){
+    console.log(k,obj[k]);//w的属性遍历不出  默认为不可枚举
+}  
+//通过Object.defineProperty来添加和改变的get /set的属性特性 添加访问器
+var obj1={
+    _name:"Lucy"
+};
+Object.defineProperty(obj1,"name",{
+    get:function (){         //只定义了get访问器特性，因此只能读不能写
+        return this._name;   //name为get访问器的名字
+    }
+});
+console.log(obj1.name);//"Lucy"
+obj1.name="jack";//只定义了get访问器，因此写入失效
+console.log(obj1.name);//"Lucy"
+//通过字面量添加访问器和通过 Object.defineProperty方法添加的写法的区别
+var obj2={
+    _name:"Lucy",
+    set name(val){this._name = val;},
+    get name(){return this._name;}
+};
+Object.defineProperty(obj2,"name",{
+    get:function (){
+        return this._name+"_hihi";
+    },
+    set:function (val) {
+        this._name = val+"_haha";
+    }
+});
+console.log(obj2.name);//Lucy_hihi
+obj2.name="jack";
+console.log(obj2.name);//jack_haha_hihi
+/*JS对象访问器（访问器属性）的特性  可配置特性（configurable）  可枚举特性（enumerable）
+读取属性特性（get）  写入属性特性（Set）*/
+var person = {_name:"Jack"};
+Object.defineProperty(person,"name",{
+    configurable:false,
+    enumerable:true,
+    set:function(val){this._name = val},
+    get:function(){return this._name}
+});
+console.log(person.name); //Jack
+person.name = "Lucy";  //自动调用set函数 即使没有writeable为true，set属性依然可写
+console.log(person.name); //Lucy
+delete person.name;//configurable为false，不可删除
+console.log(person.name);//Lucy
+//对象包含4个属性，对应4个特性，通过getOwnPropertyDescriptor方法获得
+var obj = {x:5};
+Object.defineProperty(obj,"y",{    //为obj对象添加y属性
+    configurable:false,
+    writable:false,
+    enumerable:true,
+    value:6
+});
+Object.defineProperty(obj,"z",{
+    configurable:false,
+    value:7
+});              //configurable 可配置
+Object.getOwnPropertyDescriptor(obj,"x");//{value: 5, writable: true, enumerable: true, configurable: true} 
+Object.getOwnPropertyDescriptor(obj,"y");//{value: 6, writable: false, enumerable: true, configurable: false}
+Object.getOwnPropertyDescriptor(obj,"z");//{value: 7, writable: false, enumerable: false, configurable: false}
+/*给多个属性设置特定的方法*/
+Object.defineProperties(obj,{
+    y:{value:2,writable:true,configurable:true,enumerable:true},
+    z:{value:2,writable:true,configurable:true,enumerable:true},
+    x:{
+        get:function(){return this._x;},
+        set:function (val) {
+            this._x = val;
+        }
+    }
+});
+var empty = {};
+var obj2 = Object.create(empty,{
+   x:{value:1}, y:{value:2,enumerable:true}  //enumerable:false  会变成x:1 y:2
+});
+console.log(obj2);//y:2  x:1
+console.log(obj2.hasOwnProperty("x")); //true
