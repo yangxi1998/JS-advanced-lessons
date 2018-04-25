@@ -1,0 +1,148 @@
+var obj3=function(){
+this.z=3;}
+var obj4=new obj3();
+obj4 instanceof obj3  //true
+
+var empty = {};
+var obj2 = Object.create(empty,{              //obj2继承空对象，第二个参数创建自身的属性，第二个参数为一个对象
+   x:{value:1}, y:{value:2,enumerable:true}
+});
+console.log(obj2);    //{y:2 x:1}   y的可枚举性为true，所以先输出y
+console.log(obj2.hasOwnProperty("x"));  //true  hasOwnProperty是否有该属性
+/*1.分配一个新的空对象.
+2.设置新对象的相关属性、方法，例如继承Robot.prototype上的各式方法、属性。
+注意，这里执行的并不是拷贝，而是类似于引用的方法,我们叫它代理(比如Robot.prototype对象的属性发生变化时,由Robot生成的实例对象直接继承的相应属性也会变化)。
+3.将这个新对象作为构造函数的执行上下文（其this引用指向这个新的对象），并执行构造函数.
+4.返回这个对象到执行new Robot("bower")的位置,赋值给前面的变量名.*/
+function Person(name,age){
+    this.name = name;
+    this.age = age;
+}
+Person.prototype.sayName = function(){
+    console.log("hello,i'm",this.name,this.age,"years old");
+};
+var person1 = new Person("Mike",21);
+person1.sayName(); //hello,i'm Mike 21 years old
+/*JavaScript采用的是原型的继承方式， 每个对象都有一个原型对象，最原始的原型是null*/
+/*任何方式创建的对象都有原型对象，可以通过对象的 __proto__ 属性来访问原型对象*/
+/* JavaScript的继承是对象-对象的原型继承，动态继承，可以动态修改原型属性*/
+/*__proto__是对象具有的属性，一个对象的隐式原型指向构造该对象的构造函数原型
+ prototype 是函数的属性,这个属性是一个指针，指向一个对象*/
+ /*没有私有属性时，常将方法添加到构造函数的prototype属性上，实现方法共享，而属性根据情况来确定*/
+var a={};
+a._prop_;      //a的原型
+a._prop_===Object.prototype;  // true  空对象的原型和对象原型等价
+var b=new Object();  //与a的原型等价 
+b._prop_===Object.prototype;//一个对象的隐式原型指向构造该对象的构造函数原型
+b._prop_._prop_   //null
+//多个对象同一个原型
+var obj = {
+    num:10,
+    str:"Hi",
+    show:function(){
+        return this.str;
+    }
+};
+console.log(obj.__proto__ === Object.prototype);//true  字面量直接生成的对象的构造函数是Object
+var newObj = Object.create(obj);
+var newObj2 = Object.create(obj);
+newObj.age = 23;
+console.log(newObj.__proto__ === obj);//true
+console.log(newObj2.__proto__ === obj);//true
+console.log(newObj.__proto__.__proto__);//Object.prototype
+console.log(newObj.__proto__.__proto__.__proto__);//null
+/*自有属性和继承属性*/
+var proObj = {  
+    z:3
+};
+var obj = Object.create(proObj);  //obj 自有属性 x y    继承属性 proObj 的z
+obj.x = 1;
+obj.y = 2;
+console.log(obj.x);//1
+console.log(obj.y);//2
+console.log(obj.z);//3
+console.log("z" in obj);//true  in可以判断原型链上所有的属性
+console.log(obj.hasOwnProperty("z"));//false  hasOwnProperty判断某个对象是否含有指定的自身属性
+obj.z = 5;  //为obj新添了个属性z，并赋值5
+console.log(obj.hasOwnProperty("z"));//true
+console.log(obj.z);   //5
+console.log(proObj.z); //3
+obj.z = 8;   //先访问自身，修改的是自身
+console.log(obj.z);//8
+delete obj.z; //删除obj的属性z
+console.log(obj.z); //去原型寻找 3
+delete obj.z;   //obj没有属性z可以删除
+console.log(obj.z);//3   原型寻找
+
+//如何删除原型上的属性
+delete  obj.__proto__.z;//或者delete proObj.z;
+console.log(obj.z);
+var div=document.createElement('div');
+div._prop_._prop_._prop_._prop_._prop_._prop_===Object.prototype; //true
+
+/*通过字面量直接生成创建的对象原型===Object.prototype*/
+var obj1={x:1};
+var obj2=Object.create(obj1);
+obj2.y=2;
+var obj3=Object.create(obj1);
+obj3.y=3;
+obj2.x      //1
+obj2._prop_.x=5;    //修改原型别的对象继承是都会受影响
+obj2.x; //5   自身没有， 去原型寻找
+obj3.x;//5  
+
+var proObj = {
+    z:3
+};
+var obj = Object.create(proObj);
+obj.x = 1;
+obj.y = 2;
+console.log(obj.x);//1
+console.log(obj.y);//2
+console.log(obj.z);//3
+console.log("z" in obj);//true   in可以判断原型链上的所有属性，  z在proObj中，是obj的原型
+console.log(obj.hasOwnProperty("z"));//false  obj中没有z属性
+
+obj.z = 5;
+
+console.log(obj.hasOwnProperty("z"));
+console.log(obj.z);
+console.log(proObj.z);
+
+obj.z = 8;
+console.log(obj.z);
+
+delete obj.z;//true
+console.log(obj.z);
+
+delete obj.z;//true
+console.log(obj.z);//still 3
+
+//如何删除原型上的属性
+delete  obj.__proto__.z;//或者delete proObj.z;
+console.log(obj.z);//此时彻底没有z了
+
+function Person(age,name) {
+    this.name = name;
+    this.age = age;
+}
+Person.prototype.sayHi = function () {   //一般共性的方法设在原型上，可以实现共享
+    console.log("Hi,i'm "+this.name);
+};
+var p1 = new Person(20,"Jack");
+console.log(p1.name);
+console.log(p1.age);
+p1.sayHi(); //到原型找sayhi ，本身没有此属性
+p1.__proto__===Person.prototype;  //true
+person.__proto__===Function.prototype; //true
+person.__proto__.__proto__===Object.prototype; //true
+person.__proto__.__proto__.__proto__===null;   //true
+
+var p=new Peraon();
+p.constructor;
+p.hasOwnProperty('constructor');//false
+'constructor' in p;// true
+
+var arr=new Array();
+arr.__proto__===Array.prototype;
+arr.__proto__.__proto__===Object.prototype;
