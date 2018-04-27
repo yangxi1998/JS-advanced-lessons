@@ -1,0 +1,274 @@
+//变量进行作用域传递
+var a=1;
+function f1(){
+	var b=2;
+	fuction f2(){
+		console.log(a,b);
+	}
+	f2();
+}
+f1();
+//函数调用时this不进行作用域传递  下面
+
+/*一般函数中的this（非严格模式下）指代全局对象*/
+function thisTest(){
+    console.log(this === window);
+}
+thisTest();
+//可以通过this在函数内添加、删除、修改全局对象属性
+var a = 10;b = 1;
+function thisTest2(){ //非严格模式下，this指向的是全局对象
+    this.a = 20;  //修改全局属性a
+    delete this.b;
+    this.c = "新添加属性";
+}
+thisTest2();
+console.log(a,c);  //20 "新添加属性"
+
+function thisTest(){
+    var a=b=2;       //定义局部变量a  
+}
+thisTest();
+//等效于
+function thisTest(){
+    var a=2; 
+    b=2;     //b指向的是全局    
+}
+thisTest();
+/*一般函数中的this（严格模式）为undefined*/
+function thisTest() {
+    console.log(this);
+}
+thisTest();//Window {postMessage: ƒ, blur: ƒ, focus: ƒ, close: ƒ, frames: Window, …}
+function thisTest() {
+    "use strict"
+    console.log(this);
+}
+thisTest();   //undefined
+//可以用此特性来判断当前是否为严格模式
+function isStrictMode() {
+    return this == undefined?true:false;
+}
+isStrictMode();
+
+/*对象方法中的this（无函数嵌套的情况下)*/
+var point = {
+    x:0,
+    y:0,
+    moveTo:function (x,y) {
+        this.x = x;          //this指向point对象，修改此对象上的x和y属
+        this.y = y;
+    }
+};
+point.moveTo(1,1);//this绑定到当前对象，point对象上
+console.log(point);//{x: 1, y: 1, moveTo: ƒ}
+/*构造函数中的this指代通过new新创建的对象*/
+function Point(x,y) {
+    this.x = x;
+    this.y = y;
+}
+var p = new Point(2,3);
+console.log(p);//Point {x: 2, y: 3}
+Point(5,6);//直接调用Point方法会是什么样的情况
+console.log(window.x,window.y);//5 6
+
+function Person(){
+	this.age=age;  //为window添加了一个属性age
+}
+
+function Person(){
+	this.age=age;   //该构造函数中的this指向的是实例化出的对象p
+}
+var p=new Person(20);
+p.age;  //20
+
+var Person=function(name,age){
+    this.name=name;
+    this.age=age;
+    this.show=function(){
+    	console.log(this.name,this.age);
+    }
+}
+var p1=new Person('Mike',20);
+var p2=new Person('Lucy',21);
+p1.show();//Mike 20   p1调用show 此时this指向p1
+p2.show();//Lucy 21   p2调用show 此时this指向p2
+
+var name='1',age=2;
+var Person=function(name,age){
+    this.name=name;
+    this.age=age;
+    show=function(){    //this指向的是全局
+    	console.log('x');
+    	console.log(this.name,this.age);
+    }
+}
+var p1=new Person('Mike',20);
+show();  //x   1 2
+
+
+objA = {name:"AA",x:1};
+objB = {name:"BB",x:5};
+function test() {
+    console.log(this.name,this.x);
+};
+objA.fun=test;  //为objA添加属性fun  并赋值test函数
+objA.fun();//AA 1    函数中的this指向objA对象
+objA.fun.call(objB);//BB 5   this指向的是对象objB  相当于objB调用了objA.test
+
+Function.property.hasOwnProperty('call');//true
+function f1(){};
+f1.hasOwnProperty('call');//false
+f1.__proto__.hasOwnProperty('call');//true
+/*this不进行作用域传递、 函数嵌套中的this存在缺陷*/
+var point = {
+ x:0,
+ y:0,
+ moveTo:function(x,y){
+	 function moveToX(x){//moveTo方法中嵌套的moveToX函数作为一般函数看待，此函数中的this此时指向的是全局对象window而不是point
+	 this.x = x;//this指向的是window   函数嵌套，moveToX相当于普通函数，this指向的是window
+	 };
+	 function moveToY(y){
+	 this.y = y;
+	 }
+ moveToX(x);
+ moveToY(y);
+ }
+ };
+ // 方法一：使用变量（ that或self） 软绑定
+var point = {
+    x:0,
+    y:0,
+    moveTo:function (x,y) {//moveTo方法中嵌套的函数中的that此时指向的是point对象
+        var that = this;//that指向point对象
+        function moveToX() {
+            that.x = x;//that是变量能进行作用域传递，that还是指向point对象
+           }
+        function moveToY() {
+            that.y = y;
+        }
+        moveToX();
+        moveToY();
+    }
+};
+point.moveTo(2,2);
+console.log(point);//{x: 2, y: 2, moveTo: ƒ}
+//方法二：使用call/apply间接调用
+var point = {
+    x:0,y:0,
+    moveTo:function (x,y) {
+        function moveToX() {
+            this.x = x;
+        }
+        function moveToY() {
+            this.y = y;
+        }
+        moveToX.call(this);//此时的this没有被函数嵌套，指向point对象，moveToX引用了此时的this
+        moveToY();
+    }
+};
+point.moveTo(2,2);
+console.log(point);//2,0  x通过间接调用修改了，y没有通过间接调用，指向的是全局
+console.log(y); //报错，y的作用域是局部，在函数内部定义
+/*使用Function.prototype.bind*/
+var point = {
+    x:0,y:0,
+    moveTo:function (x,y) {
+        function moveToX() {
+            this.x = x;
+        }
+        function moveToY() {
+            this.y = y;
+        }
+        moveToX.bind(point)();  //moveToX中的this绑定到了point对象 必须加（）
+        moveToY.bind(point)();
+    }
+};
+point.moveTo(2,2);
+console.log(point);
+//构造函数中函数嵌套 this缺陷
+function Point(x,y) {
+    this.x = x;
+    this.y = y;
+    this.moveXY = function (x,y) {
+        function moveX(x) {
+            this.x+=x;  //this指向的是全局 修改的是全局变量中的this
+        }
+        function moveY(y) {
+            this.y+=y;
+        }
+        moveX(x);
+        moveY(y);
+    }
+}
+var p = new Point(2,3);
+p.moveXY(1,1);//moveXY中的xy修改的是全局变量的xy， 对对象中的x y不起作用
+console.log(p); //Point {x: 2, y: 3, moveXY: ƒ}
+//通过软绑定方式
+function Point(x,y) {
+    this.x = x;
+    this.y = y;
+    this.moveXY = function (x,y) {
+        var that = this;//此处that为实例化出来的p对象
+        function moveX(x) {
+            that.x+=x;//this改为that
+        }
+        function moveY(y) {
+            that.y+=y;//this改为that
+        }
+        moveX(x);
+        moveY(y);
+    }
+}
+var p = new Point(2,3);
+p.moveXY(1,1);
+console.log(p);//Point {x: 3, y: 4, moveXY: ƒ}
+//通过call和apply来解决
+function Point(x,y) {
+    this.x = x;
+    this.y = y;
+    this.moveXY = function (x,y) {
+        function moveX(x) {
+            this.x+=x;  //this指向的是全局
+        }
+        function moveY(y) {
+            this.y+=y;
+        }
+        moveX.call(this.x); //this在第一层函数中，this指向的是实例化的p对象
+        moveY.apply(this.[y]);
+    }
+}
+var p = new Point(2,3);
+p.moveXY(1,1);
+console.log(p);
+//通过bind来解决
+function Point(x,y) {
+    this.x = x;
+    this.y = y;
+    this.moveXY = function (x,y) {
+        function moveX(x) {
+            this.x+=x;  //this指向的是全局
+        }
+        function moveY(y) {
+            this.y+=y;
+        }
+        moveX.bind(this.x)(); //this在第一层函数中，this指向的是实例化的p对象
+        moveY.bind(this.y)();//moveY.bind()返回的是函数，所以加()调用它
+    }
+}
+var p = new Point(2,3);
+p.moveXY(1,1);
+console.log(p);
+
+function Robot(name){
+    this.name= name;
+    this.say=function(){
+                console.log(this.name)  //this指向的是robot对象
+             }
+}
+var robot = new Robot('bower');
+robot.say();  //bower
+function say(){
+    console.log(this.name)
+}
+say.call(robot);//bower    为say函数绑定了robot对象，然后调用Robot函数，为this.name赋值bower，然后say函数中的this指向对象，所以值为bower
