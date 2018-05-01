@@ -1,0 +1,179 @@
+var superObj = {
+    x:1,
+    y:2
+};
+var subObj_First = Object.create(superObj);
+var subObj_Second = Object.create(superObj);
+subObj_First.__proto__.x = 5;//为superObj修改了属性x
+console.log(subObj_Second.x);  //5
+subObj_First.x = 6;//为subObj_First添加了一个属性x
+console.log(subObj_Second.x);//5    先找自身有无x属性，自身没有找原型
+
+var superObj = {
+    x:1,
+    y:2
+};
+var subObj_First = Object.create(superObj);
+var subObj_Second = Object.create(superObj);
+subObj_First.x = 5;
+console.log(subObj_Second.x);//1   先找自身有无x属性，自身没有找原型
+
+/*构造函数实现的对象-对象的原型继承的原型共享问题 */
+function Person(name){
+    this.name = name;
+}
+Person.prototype.age = 22;  //只要是xx.prototype 一定是对象
+Person.prototype.showName = function(){console.log(this.name);};
+function Student(id){
+    this.id = id;
+}
+//var p1 = new Person("Mike");Student.prototype = p1;
+Student.prototype = new Person("Mike");//Student.prototype即实例化的Person对象
+var s1 = new Student(2017001);
+var s2 = new Student(2017002);
+				age = 22,showName = function(){}  //Person.prototype
+                          |
+                        name:Mike       //Student.prototype /*Person的构造函数实例化出的对象*/
+                    |                   |
+               id:2017001 /*s1*/          id:2017002  //s2   /*Student的构造函数实例化出的对象*/
+
+
+//测试如下代码，思考为什么，这样的继承有什么弊端
+console.log(s1.name,s1.age,s1.id);
+console.log(s2.name,s2.age,s2.id);
+s1.__proto__.name = "Jack";
+console.log(s2.name);
+s2.__proto__.__proto__.age = 99;
+console.log(s2.age);
+var s={
+	show:function(){
+		console.log(this.x,this.y);
+	}
+}
+var s1=Object.create(s);
+s1.x=1;
+s1.y=2;
+s1.show(); //自身找不到show属性，找原型，   this指向最终调用的函数的主体，此时this指向s1
+
+function Person(name,age){
+    this.name = name;
+    this.age = age;
+};
+Person.prototype.showName = function(){console.log(this.name);};
+function Student(name,age,id){
+    Person.call(this,name,age);  //this调用Person函数，此时Person作为一般函数 等效于this.name = name;this.age = age;
+    this.id = id;
+}
+Student.prototype.__proto__ = Person.prototype;
+var s1 = new Student("xxx",22,2017001);  //调用构造函数Student，为s1添加了3个属性
+var s2 = new Student("www",23,2017002);
+              showName   //Person.prototype
+                 |
+              _________           //Student.prototype
+       |                       |
+  name  age //s1           name  age         //s2
+    id                       id                 
+/*模拟类-类继承的形式 一*/
+function Person(name,age){
+    this.name = name;
+    this.age = age;
+};
+Person.prototype.showName = function(){console.log(this.name);};
+function Student(name,age,id){
+    Person.call(this,name,age);
+    this.id = id;
+}
+Student.prototype.__proto__ = Person.prototype;
+var s1 = new Student("xxx",22,2017001);
+var s2 = new Student("www",23,2017002);
+                 showName：function(){}// Person.prototype
+                          |  
+                    没有自身属性和方法//Student.prototype  /*Person构造函数实例化对象*/ 
+                    |                         |
+        id：2017001 age：22  //s1         id：2017002 age：23   //s2      /*Student构造函数实例化对象*/
+        name:'xxx'                             name:'www'
+/*模拟类-类继承的形式 二*/
+
+function Person(name,age){
+    this.name = name;
+    this.age = age;
+};
+Person.prototype.showName = function(){
+    console.log(this.name);
+};
+function Student(name,age,id){
+    Person.call(this,name,age);
+    this.id = id;
+}
+Student.prototype = Object.create(Person.prototype);//Student.prototype此对象的原型指向Person.prototype
+//相当于Student.prototype.__proto__ = Person.prototype;
+console.log(Person.prototype.constructor); //ƒ Person(){} constructor返回创建该对象的构造函数 
+console.log(Student.prototype.constructor); // ƒ Person(){}
+Student.prototype.constructor = Student;//把Student原型对象中原本指向Person构造函数的对象强行指向到Student
+//如果没有此行，就指错了
+var s1 = new Student("xxx",22,2017001);
+var s2 = new Student("www",23,2017002);
+//图如上
+s1.__proto__.__proto__===Person.prototype;
+
+//数组中的push 定义在Array.prototype.push;   
+Function.__proto__===Function.prototype;//true
+
+/* 静态方法是构造器函数对象（类）的方法，原型方法是实例化对象（对象）的原型的方法 */
+//静态方法实例
+var BaseClass = function() {};
+BaseClass.prototype.f2 = function () {
+    console.log("This is a prototype method ");
+};
+BaseClass.f1 = function(){//定义静态方法
+    console.log("This is a static method ");
+};
+BaseClass.f1();//This is a static method
+var instance1 = new BaseClass();
+instance1.f2();//This is a prototype method
+
+//原型方法实例
+var BaseClass = function() {};
+BaseClass.prototype.method1 = function(){
+    console.log("1 This is a method in Base.prototype");
+};
+var instance1 = new BaseClass();
+instance1.method1();
+
+instance1.method1 = function(){
+    console.log("2 This is a method in instance1");
+};
+instance1.method1();//访问的哪一个method1？
+/* 因为对象实例从原型中继承了constructor，所以可以通过constructor得到实例的构造函数，、constructor可用于指定构造函数
+*/
+// 1 确定对象的构造函数名
+function Foo() {}
+var f = new Foo();
+console.log(f.constructor.name);//Foo    
+f.constructor===Foo //true
+// 2 创建相似对象
+function Constr(name) {
+    this.name = name;
+}
+var x = new Constr("Jack");
+var y = new x.constructor("Mike");
+console.log(y);//Constr {name: "Mike"}
+console.log(y instanceof Constr);  //true
+//instanceof 一般判断对象类型，左操作数对象，右操作数函数
+// 3 constructor可用于指定构造函数
+function Person(area){
+    this.type = 'person';
+    this.area = area;
+}
+Person.prototype.sayArea = function(){
+    console.log(this.area);
+};
+var Father = function(age){
+    this.age = age;
+};
+Father.prototype = new Person('Beijin');
+console.log(Person.prototype.constructor); //function person()
+console.log(Father.prototype.constructor); //function person()
+Father.prototype.constructor = Father;     //修正constructor指向
+console.log(Father.prototype.constructor); //function father()
+var one = new Father(25);
