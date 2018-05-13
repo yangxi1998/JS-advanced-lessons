@@ -1,0 +1,93 @@
+/* 正则表达式是对字符串和特殊字符操作的一种逻辑公式，是对字符串执行模式匹配的工具 */
+//正则对象的创建方式一 通过字面量直接创建
+var reg1 = /[bcf]at/gi;   //（b或c或f）at    i不区分大小写 
+//正则对象的创建方式二 通过RegExp构造函数来实例化正则对象
+
+var reg2 = new RegExp(/[bcf]at/,"gi");//常见形式
+var reg3 = new RegExp("[bcf]at","gi");//与上面等价
+
+console.log("a fAt bat ,a faT cat".match(reg1));//["fAt", "bat", "faT", "cat"]   match定义在string.prototype上，找到一个或多个正则表达式的匹配
+console.log("a fAt bat ,a faT cat".match(reg2));//["fAt", "bat", "faT", "cat"]  
+console.log("a fAt bat ,a faT cat".match(reg3));//["fAt", "bat", "faT", "cat"]
+
+/*g全局,i忽略大小写,m包含换行*/
+var regExp = /ab/i;
+var matchResult = "xxAbcaaBbxyz".match(regExp);
+console.log(matchResult);  //['Ab']  i是不区分大小写，没有g，所以是局部，只输出Ab
+
+var regExp = /ab/gi;
+var matchResult = "xxAbcaaBbxyz".match(regExp);
+console.log(matchResult);  //["Ab", "aB"]     g是全局
+
+var regExp = /a*b/gi; // /a*b/ （b或ab或aab）   
+var matchResult = "xxAbcaaBbxyz".match(regExp);
+console.log(matchResult);  //["Ab", "aaB", "b"]
+
+var regExp = /a.b/gi; // /a.b/ （a+任何值+b）   
+var matchResult = "xxAbcaaBbxyz".match(regExp);
+console.log(matchResult);  //["aaB"]
+
+/*test用于检测一个字符串是否匹配某个模式*/
+/*上次匹配的结果是由test（）找到的，他们都以lastindex属性所指的位置作为下次检索的起始点，可以通过反复调用这两个方法来遍历一个字符串中所有匹配的文本*/
+var regExp = /a/i;  //没加g，不是全局  
+console.log(regExp.test("ab")); //true
+console.log(regExp.test("ab")); //true
+console.log(regExp.test("ab"));//true
+console.log(regExp.test("ab"));//true
+
+var regExp = /a/gi;//加了g，lastindex不断变化
+console.log(regExp.test("ab"));//true
+console.log(regExp.test("ab"));//false 
+console.log(regExp.test("ab"));//true
+console.log(regExp.test("ab"));//false
+
+/*\d 匹配一个数字\D  匹配一个非数字字符  \w  匹配一个单字字符（字母、数字或者下划线）
+\W  匹配一个非单字字符\s  匹配一个空白字符，包括空格、制表符、换页符和换行符
+\S  匹配一个非空白字符\b 匹配一个词的边界 \B匹配一个非单词边界*/
+//replace在字符串中用一些字符替换另一些字符
+"sdafsa sdfea2s".replace(/a\ds/g,"*");//"sdafsa sdfe*"
+"sdafsa sdfea2s".replace(/a\Ds/g,"*");//"sd**dfea2s"
+"sdafsa sdfea2s".replace(/a\ws/g,"*");//"sd*a sdfe*"
+"sdafsa sdfea2s".replace(/a\Ws/g,"*");//"sdafs*dfea2s"
+//search返回第一个与regexp相匹配的字符串的起始位置，不执行全局匹配，忽略g，同时忽略lastindex属性，
+//它总是返回第一个匹配的位置
+var str = "test22314234244dgfqeqe232qe13ed";
+var newStr = str.search(/\dqe/);
+console.log(newStr);//24
+str.replace(/\dqe/,11223344);
+console.log(str);//test22314234244dgfqeqe232qe13ed
+/*[ ]代表字符类，如[abc]代表abc中的任意一个字符，可以配合范围符号-如[a-c3-9]//a-c的所有字母 3-9的所有数字 */
+/*[^ ]代表字符类取反，如[^abc]代表非abc中的任意一个字符 */
+/*？出现0次或1次（最多1次） +出现1次或多次（至少1次） *出现0次或多次（任意次） {n} 出现n次 {n,m} 出现n到m次 {n,}出现至少n次*/
+console.log("absxsdfe123Ab".replace(/[^abd]/,"X"));//abXxsdfe123Ab
+console.log("absxsdfe123Ab".replace(/[^abd]/g,"X"));//abXXXdXXXXXXb
+console.log("absxsdfe123Ab".replace(/[^abd]/gi,"X"));//abXXXdXXXXXAb
+
+console.log("12345667".replace(/[3-9]/gi,"X")); //12XXXXXX
+console.log("absxsdfe123Ab".replace(/[a-f1-9]/gi,"X"));  //XXsxsXXXXXXXX
+console.log("absxsdfe123Ab".replace(/[a-f][1-9]/gi,"X"));//absxsdfX23Ab   遇到a-f和1-9的字符连着才替换
+console.log("absxsdfe1Q2e3Ab".replace(/[a-f][1-9][A-Z]/gi,"X"));//absxsdfX2Xb
+
+console.log("2017-10-23".replace(/[0-9]/g,"X"));  //XXXX-XX-XX
+console.log("2017-10-23".replace(/[0-9-]/g,"X")); //XXXXXXXXXX  0-9或-  
+
+console.log("AaBbAb_AaaBbbAba".replace(/Aa*/g,0)); //0Bb0b_0Bbb0ba   A 或 Aa 或Aaa    a出现任意次
+console.log("AaBbAb_AaaBbbAba".replace(/Aa{2}/g,0));//AaBbAb_0BbbAba   Aaa     a出现2次
+console.log("AaBbAb_AaaBbbAbaAaaaaaaAaaAaaa".replace(/Aa{2,}/g,0));//AaBbAb_0BbbAba000   a至少出现2次
+/*正则表达式贪婪模式与非贪婪模式 */
+//默认为贪婪模式（即尽可能多的匹配），在量词后加？可设置为非贪婪模式 
+"12345678".replace(/\d{3,6}/,'X');//"X78"   数字出现3-6次，默认为贪婪模式，数字出现6次
+"12345678".replace(/\d{3,6}?/,'X');//X45678   在量词后加？设置为非贪婪模式
+"12345678".replace(/\d{3,6}?/g,'X'); //XX78
+/*正则表达式的分组*/
+//使用小括号来进行分组
+  /Name{3}/ Nameee    e出现3次
+/(Name){3}/  NameNameName    Name出现3次
+
+//或 |、分组中的或 |
+"abcdefghijk".replace(/abcde|fghijk/g,"X");//"XX"     abcde或fghijk
+"abcdefghijk_abcdehijk_abcfghijk".replace(/abc(de|fg)hijk/g,"X");  //"abcdefghijk_X_X"  abc de或fg  hijk
+/*正则表达式的分组的反向引用*/
+"2017-10-23".replace(/(\d{4})-(\d{2})-(\d{2})/,"$2/$3/$1");//"10/23/2017"
+//分组 忽略分组  在分组内加上？：
+ "2017-10-23".replace(/(?:\d{4})-(\d{2})-(\d{2})/,"$2/$3/$1"); //"23/$3/10"
